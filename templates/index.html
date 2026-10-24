@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a2c">
+  <title>{{ settings.helpdesk_title }}</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: #202b3d;
+      background: #e9eef5;
+      font-synthesis: none;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(245, 248, 252, 0.91), rgba(245, 248, 252, 0.94)),
+        url("/static/images/campus-building.png") center / cover fixed no-repeat;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .layout { display: flex; width: 100%; min-height: 100vh; }
+    .sidebar {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex: 0 0 196px;
+      flex-direction: column;
+      height: 100vh;
+      padding: 15px 12px 12px;
+      color: #e8edf5;
+      background: rgba(16, 26, 44, 0.92);
+      backdrop-filter: blur(5px);
+    }
+
+    @media (min-width: 801px) {
+      .layout.sidebar-collapsed .sidebar { display: none; }
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 4px 8px 14px;
+      color: #fff;
+      font-size: 0.91rem;
+      font-weight: 700;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid #ffffff66;
+      border-radius: 9px;
+      background: #fff;
+    }
+
+    .brand-mark img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .new-chat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #40516a;
+      border-radius: 10px;
+      color: #fff;
+      background: transparent;
+      text-align: left;
+      transition: background 0.15s ease;
+    }
+
+    .new-chat:hover, .question-link:hover { background: #1d2a40; }
+    .sidebar-heading {
+      margin: 23px 8px 9px;
+      color: #9ba9bc;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .faq-search {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #34445c;
+      border-radius: 9px;
+      outline: none;
+      color: #f4f7fb;
+      background: #17243a;
+      font-size: 0.83rem;
+    }
+
+    .faq-search::placeholder { color: #95a4b9; }
+    .faq-search:focus { border-color: #7196c9; }
+    .faq-list { flex: 1; overflow: auto; padding: 0 0 6px; }
+    .question-link {
+      display: block;
+      width: 100%;
+      padding: 9px 10px;
+      border: 0;
+      border-radius: 8px;
+      color: #d8e0ec;
+      background: transparent;
+      text-align: left;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .question-link[hidden] { display: none; }
+    .faq-empty { padding: 12px 9px; color: #acb7c7; font-size: 0.8rem; }
+    .sidebar-footer {
+      padding: 12px 8px 4px;
+      border-top: 1px solid #2b3a50;
+      color: #9eacc0;
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+
+    .main { display: flex; flex: 1; min-width: 0; flex-direction: column; height: 100vh; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 63px;
+      padding: 10px 22px;
+      border-bottom: 1px solid #e7ebf0;
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(8px);
+    }
+
+    .topbar-logo {
+      display: block;
+      flex: 0 0 40px;
+      width: 40px;
+      height: 40px;
+      padding: 2px;
+      border: 1px solid #e0e6ee;
+      border-radius: 10px;
+      background: #fff;
+      object-fit: contain;
+    }
+
+    .menu-button {
+      display: inline-grid;
+      flex: 0 0 38px;
+      width: 38px;
+      height: 38px;
+      border: 1px solid #e0e6ee;
+      border-radius: 9px;
+      color: #26364e;
+      background: #fff;
+      place-items: center;
+    }
+
+    .topbar-title { font-size: 0.94rem; font-weight: 650; }
+    .topbar-subtitle { margin-top: 3px; color: #768399; font-size: 0.76rem; }
+    .topbar-badge {
+      margin-left: auto;
+      padding: 6px 9px;
+      border: 1px solid #dce7f3;
+      border-radius: 999px;
+      color: #315b89;
+      background: #f5f9fe;
+      font-size: 0.72rem;
+    }
+
+    .chat-content {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      align-items: center;
+      overflow: auto;
+      padding: 28px 20px 15px;
+    }
+
+    .welcome { width: min(980px, 100%); padding: 15px 0 20px; }
+    .welcome h1 { margin: 0 0 7px; color: #1b2c45; font-size: clamp(1.35rem, 3vw, 1.8rem); }
+    .welcome p { margin: 0; color: #67758a; line-height: 1.5; }
+    .quick-replies { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 17px; }
+    .quick-replies button {
+      padding: 8px 12px;
+      border: 1px solid #d8e1ec;
+      border-radius: 999px;
+      color: #254b7d;
+      background: #fff;
+      font-size: 0.8rem;
+    }
+
+    .quick-replies button:hover { background: #f2f7fd; }
+    .messages {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 20px;
+      width: min(980px, 100%);
+      overflow-y: auto;
+      padding: 7px 0 18px;
+      scroll-behavior: smooth;
+    }
+
+    .message { max-width: min(88%, 650px); }
+    .message.user { align-self: flex-end; }
+    .message.bot { align-self: flex-start; }
+    .bubble { padding: 12px 15px; border-radius: 16px; line-height: 1.55; overflow-wrap: anywhere; }
+    .bubble-image { display: block; max-width: min(100%, 560px); max-height: 360px; margin-top: 12px; border-radius: 12px; object-fit: contain; }
+    .user .bubble { border-bottom-right-radius: 5px; color: #fff; background: #245ca6; }
+    .bot .bubble { border: 1px solid #e5e9ef; border-bottom-left-radius: 5px; color: #27364b; background: #f4f6f9; }
+    .bot.fallback { max-width: min(94%, 690px); }
+    .bot.fallback .bubble {
+      border-color: #dce7f1;
+      border-bottom-left-radius: 5px;
+      background: linear-gradient(145deg, #edf4fb, #eef3f9);
+      box-shadow: 0 0 0 1px rgba(24, 46, 77, 0.01);
+    }
+    .fallback-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 10px;
+      color: #1b2d4d;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .fallback-title-icon {
+      display: inline-grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 50%;
+      color: #1f4a7a;
+      background: #e5eef9;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .fallback-copy {
+      margin: 0;
+      color: #40506a;
+      font-size: 0.96rem;
+      line-height: 1.6;
+    }
+    .fallback-topics, .fallback-contact { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .fallback-topic, .fallback-contact a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid #d7e2ee;
+      border-radius: 10px;
+      color: #274f7d;
+      background: rgba(255, 255, 255, 0.5);
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .fallback-topic:hover, .fallback-contact a:hover { border-color: #b7cfe8; background: rgba(255,255,255,0.8); }
+    .fallback-contact a.primary {
+      min-width: 180px;
+      border-color: #1d4e84;
+      color: #fff;
+      background: #1d4e84;
+      font-weight: 600;
+    }
+    .fallback-contact a.primary:hover { background: #163f6a; }
+    .meta { margin: 5px 4px 0; color: #7a879a; font-size: 0.72rem; }
+    .user .meta { text-align: right; }
+    .typing { color: #69778b; font-size: 0.84rem; font-style: italic; }
+    .typing[hidden] { display: none; }
+    .composer-area { width: min(980px, 100%); padding: 0 0 14px; }
+    #chat-form {
+      display: flex;
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid #dce2eb;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 5px 20px #2538520d;
+    }
+
+    #question {
+      flex: 1;
+      min-width: 0;
+      padding: 9px 10px;
+      border: 0;
+      outline: none;
+      color: #202b3d;
+      background: transparent;
+      font-size: 0.93rem;
+    }
+
+    #chat-form button {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 11px;
+      color: #fff;
+      background: #1d4e84;
+      font-size: 1.15rem;
+    }
+
+    #chat-form button:disabled { opacity: 0.6; cursor: wait; }
+    .composer-hint { margin-top: 8px; color: #8a95a5; text-align: center; font-size: 0.7rem; }
+    .sidebar-backdrop { display: none; }
+    .faq-empty { line-height: 1.5; }
+
+    @media (max-width: 800px) {
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(260px, 82vw);
+        height: 100dvh;
+        transform: translateX(-102%);
+        transition: transform 0.2s ease;
+      }
+
+      body.sidebar-open .sidebar { transform: translateX(0); }
+      body.sidebar-open .sidebar-backdrop {
+        position: fixed;
+        z-index: 4;
+        inset: 0;
+        display: block;
+        border: 0;
+        background: #09111f7a;
+      }
+
+      .main { height: 100dvh; }
+      .topbar { padding-inline: 13px; }
+      .chat-content { padding: 20px 15px 12px; }
+    }
+
+    @media (max-width: 480px) {
+      .topbar-badge { display: none; }
+      .welcome { padding-top: 8px; }
+      .welcome h1 { font-size: 1.35rem; }
+      .messages { gap: 15px; }
+      .message { max-width: 94%; }
+      .composer-area { padding-bottom: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout sidebar-collapsed">
+    <aside class="sidebar" id="sidebar" aria-label="FAQ sidebar">
+      <div class="brand">
+        <span class="brand-mark"><img src="{{ url_for('static', filename='images/college-logo.png') }}" alt=""></span>
+        <span>{{ settings.college_name }}</span>
+      </div>
+      <button class="new-chat" id="new-chat" type="button"><span aria-hidden="true">＋</span> New chat</button>
+      <h2 class="sidebar-heading">Frequently asked questions</h2>
+      <label>
+        <span class="visually-hidden">Search FAQs</span>
+        <input class="faq-search" id="faq-search" type="search" placeholder="Search questions..." autocomplete="off">
+      </label>
+      <nav class="faq-list" id="faq-list" aria-label="FAQ questions">
+        <div class="faq-empty">Type a keyword above to see matching questions.</div>
+      </nav>
+      <div class="sidebar-footer">
+        <strong>Need more help?</strong><br>
+        {{ settings.contact_phone }} · {{ settings.contact_website }}<br>
+        {{ settings.location }} · Code {{ settings.college_code }}
+      </div>
+    </aside>
+
+    <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" aria-label="Close FAQ sidebar"></button>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-button" id="menu-button" type="button" aria-label="Show FAQ sidebar" aria-expanded="false" title="Show or hide FAQ sidebar">☰</button>
+        <img class="topbar-logo" src="{{ url_for('static', filename='images/college-logo.png') }}" alt="The Kavery Engineering College emblem">
+        <div>
+          <div class="topbar-title">{{ settings.college_name }}</div>
+          <div class="topbar-subtitle">AI Helpdesk · {{ settings.location }} · College Code: {{ settings.college_code }}</div>
+        </div>
+        <span class="topbar-badge">FAQ-powered answers</span>
+      </header>
+
+      <section class="chat-content" aria-label="Chat with TKEC helpdesk">
+        <div class="welcome" id="welcome">
+          <h1>{{ settings.welcome_title }}</h1>
+          <p>{{ settings.welcome_text }}</p>
+          <nav class="quick-replies" aria-label="Popular topics">
+            {% for topic in settings.quick_topics %}
+              <button type="button">{{ topic }}</button>
+            {% endfor %}
+          </nav>
+        </div>
+
+        <section class="messages" id="messages" aria-live="polite" aria-label="Chat messages">
+          <div class="message bot">
+            <div class="bubble">{{ settings.welcome_message }}</div>
+            <div class="meta">{{ settings.helpdesk_title }}</div>
+          </div>
+          <div class="typing" id="typing" role="status" hidden>Bot is typing...</div>
+        </section>
+
+        <div class="composer-area">
+          <form id="chat-form">
+            <input id="question" name="q" type="text" placeholder="{{ settings.input_placeholder }}" autocomplete="off" aria-label="Your question" required>
+            <button id="send" type="submit" aria-label="Send message">↑</button>
+          </form>
+          <div class="composer-hint">{{ settings.composer_hint }}</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const faqs = {{ faqs | tojson }};
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("question");
+    const messages = document.getElementById("messages");
+    const typing = document.getElementById("typing");
+    const sendButton = document.getElementById("send");
+    const faqSearch = document.getElementById("faq-search");
+    const faqList = document.getElementById("faq-list");
+    const welcome = document.getElementById("welcome");
+
+    function renderFaqSidebar() {
+      faqList.replaceChildren();
+      const searchTerms = faqSearch.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      if (!searchTerms.length) {
+        const hint = document.createElement("div");
+        hint.className = "faq-empty";
+        hint.textContent = "Type a keyword above to see matching questions.";
+        faqList.appendChild(hint);
+        return;
+      }
+
+      const visibleFaqs = faqs
+        .map((faq) => {
+          const questionText = faq.q.toLowerCase();
+          const categoryText = faq.category.toLowerCase();
+          const keywordText = faq.keywords.join(" ").toLowerCase();
+          const matchesAllTerms = searchTerms.every((term) =>
+            questionText.includes(term) || categoryText.includes(term) || keywordText.includes(term)
+          );
+          const matchesQuestionOrCategory = searchTerms.every((term) =>
+            questionText.includes(term) || categoryText.includes(term)
+          );
+          const questionMatches = searchTerms.filter((term) => questionText.includes(term)).length;
+          const categoryMatches = searchTerms.filter((term) => categoryText.includes(term)).length;
+          const keywordMatches = searchTerms.filter((term) => keywordText.includes(term)).length;
+
+          return {
+            faq,
+            matchesAllTerms,
+            matchesQuestionOrCategory,
+            relevance: questionMatches * 3 + categoryMatches * 1.5 + keywordMatches
+          };
+        })
+        .filter((result) => result.matchesAllTerms)
+        .filter((result, _index, results) =>
+          !results.some((candidate) => candidate.matchesQuestionOrCategory) ||
+          result.matchesQuestionOrCategory
+        )
+        .sort((first, second) => second.relevance - first.relevance)
+        .slice(0, 30)
+        .map((result) => result.faq);
+
+      if (!visibleFaqs.length) {
+        const empty = document.createElement("div");
+        empty.className = "faq-empty";
+        empty.textContent = "No matching FAQs. Try another keyword.";
+        faqList.appendChild(empty);
+        return;
+      }
+
+      visibleFaqs.forEach((faq) => {
+        const question = document.createElement("button");
+        question.type = "button";
+        question.className = "question-link";
+        question.textContent = faq.q;
+        question.title = `Keywords: ${faq.keywords.join(", ")}`;
+        question.addEventListener("click", () => {
+          ask(faq.q);
+          closeSidebar();
+        });
+        faqList.appendChild(question);
+      });
+    }
+
+    function addMessage(text, sender, meta = "", isFallback = false, imageUrl = null) {
+      const wrapper = document.createElement("div");
+      wrapper.className = `message ${sender}${isFallback ? " fallback" : ""}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+      if (imageUrl && sender === "bot") {
+        const image = document.createElement("img");
+        image.className = "bubble-image";
+        image.src = imageUrl;
+        image.alt = "Image related to this FAQ answer";
+        image.loading = "lazy";
+        bubble.appendChild(image);
+      }
+      wrapper.appendChild(bubble);
+
+      if (meta && !isFallback) {
+        const details = document.createElement("div");
+        details.className = "meta";
+        details.textContent = meta;
+        wrapper.appendChild(details);
+      }
+
+      messages.insertBefore(wrapper, typing);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function resetChat() {
+      messages.querySelectorAll(".message").forEach((message) => message.remove());
+      addMessage({{ settings.welcome_message | tojson }}, "bot", {{ settings.helpdesk_title | tojson }});
+      welcome.hidden = false;
+      input.value = "";
+      input.focus();
+    }
+
+    function closeSidebar() {
+      document.body.classList.remove("sidebar-open");
+      document.getElementById("menu-button").setAttribute("aria-expanded", "false");
+    }
+
+    async function ask(question) {
+      const cleanedQuestion = question.trim();
+      if (!cleanedQuestion || sendButton.disabled) return;
+
+      welcome.hidden = true;
+      addMessage(cleanedQuestion, "user");
+      input.value = "";
+      typing.hidden = false;
+      sendButton.disabled = true;
+      messages.scrollTop = messages.scrollHeight;
+
+      try {
+        const response = await fetch(`/chat?q=${encodeURIComponent(cleanedQuestion)}`);
+        if (!response.ok) throw new Error("Chat service returned an error.");
+        const data = await response.json();
+        const matchMeta = data.matched
+          ? `${data.category} · ${Math.round(data.score * 100)}% match`
+          : "FAQ helper";
+
+        if (data.type === "contact") {
+          addMessage(data.answer, "bot", matchMeta, true, data.image_url);
+        } else {
+          addMessage(data.answer, "bot", matchMeta, false, data.image_url);
+        }
+      } catch (error) {
+        addMessage("Sorry, the helpdesk is temporarily unavailable. Please try again.", "bot");
+      } finally {
+        typing.hidden = true;
+        sendButton.disabled = false;
+        input.focus();
+        messages.scrollTop = messages.scrollHeight;
+      }
+    }
+
+    faqSearch.addEventListener("input", renderFaqSidebar);
+    document.getElementById("new-chat").addEventListener("click", resetChat);
+    document.getElementById("menu-button").addEventListener("click", (event) => {
+      const isMobile = window.matchMedia("(max-width: 800px)").matches;
+      if (isMobile) {
+        const open = document.body.classList.toggle("sidebar-open");
+        event.currentTarget.setAttribute("aria-expanded", String(open));
+        event.currentTarget.setAttribute("aria-label", open ? "Close FAQ sidebar" : "Open FAQ sidebar");
+      } else {
+        const collapsed = document.querySelector(".layout").classList.toggle("sidebar-collapsed");
+        event.currentTarget.setAttribute("aria-expanded", String(!collapsed));
+        event.currentTarget.setAttribute("aria-label", collapsed ? "Show FAQ sidebar" : "Hide FAQ sidebar");
+      }
+    });
+    document.getElementById("sidebar-backdrop").addEventListener("click", closeSidebar);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      ask(input.value);
+    });
+    document.querySelectorAll(".quick-replies button").forEach((button) => {
+      button.addEventListener("click", () => ask(button.textContent));
+    });
+
+    renderFaqSidebar();
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ 'Edit FAQ' if faq else 'Add FAQ' }} · TKEC Helpdesk</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; padding: 24px; color: #202b3d; background: linear-gradient(rgba(245, 248, 252, 0.91), rgba(245, 248, 252, 0.94)), url("/static/images/campus-building.png") center / cover fixed no-repeat; font: 16px "Segoe UI", Arial, sans-serif; }
+    main { width: min(760px, 100%); margin: 20px auto; padding: 28px; border: 1px solid #dce4ef; border-radius: 14px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(5px); }
+    h1 { margin-top: 0; }
+    label { display: block; margin: 18px 0 7px; font-weight: 600; }
+    input, textarea { width: 100%; padding: 11px; border: 1px solid #cdd8e7; border-radius: 8px; font: inherit; }
+    textarea { min-height: 130px; resize: vertical; }
+    .current-image { display: block; max-width: min(100%, 420px); max-height: 280px; margin-top: 10px; border: 1px solid #dce4ef; border-radius: 10px; object-fit: contain; }
+    .help { color: #69778d; font-size: .9rem; }
+    button, a { display: inline-block; margin-top: 20px; padding: 10px 14px; border: 1px solid #cbd8e8; border-radius: 8px; color: #244c7a; background: white; font: inherit; text-decoration: none; cursor: pointer; }
+    button { border-color: #245b9c; color: white; background: #245b9c; }
+    .flash { padding: 12px; border-radius: 8px; color: #8a2222; background: #fff0f0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{{ 'Edit FAQ' if faq else 'Add FAQ' }}</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}<p class="flash {{ category }}" role="alert">{{ message }}</p>{% endfor %}
+    {% endwith %}
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label for="category">Category</label>
+      <input id="category" name="category" value="{{ form_values.category if form_values else (faq.category if faq else '') }}" required>
+
+      <label for="question">Question</label>
+      <textarea id="question" name="question" required>{{ form_values.q if form_values else (faq.q if faq else '') }}</textarea>
+
+      <label for="answer">Answer</label>
+      <textarea id="answer" name="answer" required>{{ form_values.a if form_values else (faq.a if faq else '') }}</textarea>
+
+      <label for="keywords">Search keywords</label>
+      <textarea id="keywords" name="keywords" required>{{ form_values.keywords | join('\n') if form_values else (faq.keywords | join('\n') if faq else '') }}</textarea>
+      <p class="help">Enter one keyword or phrase per line. Comma-separated values are also accepted.</p>
+      <label for="image">Answer image (optional)</label>
+      <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp">
+      <p class="help">Upload a JPG, PNG, or WebP image up to 5 MB. It will appear below this FAQ's answer in the chat.</p>
+      {% if faq and faq.image_url %}
+        <img class="current-image" src="{{ faq.image_url }}" alt="Current image for this FAQ">
+        <label><input type="checkbox" name="remove_image" value="on" style="width:auto"> Remove current image</label>
+      {% endif %}
+      <button type="submit">Save FAQ</button>
+      <a href="{{ url_for('admin_dashboard') }}">Cancel</a>
+    </form>
+  </main>
+</body>
+</html>

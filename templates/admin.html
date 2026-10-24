@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · {{ settings.helpdesk_title }}</title>
+  <style>
+    :root { font-family: Inter, "Segoe UI", Arial, sans-serif; color: #202b3d; background: #e9eef5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: linear-gradient(rgba(245, 248, 252, 0.91), rgba(245, 248, 252, 0.94)), url("/static/images/campus-building.png") center / cover fixed no-repeat; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px max(20px, calc((100% - 1180px) / 2)); color: white; background: rgba(16, 26, 44, 0.94); backdrop-filter: blur(8px); }
+    header h1 { margin: 0; font-size: 1.2rem; }
+    header nav { display: flex; align-items: center; gap: 16px; }
+    header a { color: white; }
+    header form { margin: 0; }
+    header button { color: white; border: 1px solid #71809a; background: transparent; }
+    main { width: min(1180px, calc(100% - 32px)); margin: 28px auto 60px; }
+    section { margin: 20px 0; padding: 22px; border: 1px solid #dce4ef; border-radius: 14px; background: rgba(255, 255, 255, 0.94); box-shadow: 0 8px 24px #20395c0a; backdrop-filter: blur(5px); }
+    h2 { margin: 0 0 14px; font-size: 1.2rem; }
+    p { color: #69778d; }
+    a { color: #245b9c; }
+    button, .button { display: inline-block; padding: 9px 13px; border: 1px solid #cbd8e8; border-radius: 8px; color: #244c7a; background: white; font: inherit; text-decoration: none; cursor: pointer; }
+    .primary { border-color: #245b9c; color: white; background: #245b9c; }
+    .danger { color: #9b2c2c; border-color: #efcaca; }
+    input, textarea { width: 100%; min-width: 0; padding: 10px; border: 1px solid #cdd8e7; border-radius: 8px; font: inherit; }
+    label { display: block; margin: 12px 0 6px; font-weight: 600; }
+    .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+    .settings-grid textarea { min-height: 74px; resize: vertical; }
+    .field-wide { grid-column: 1 / -1; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .search { display: flex; flex: 1; gap: 8px; max-width: 580px; }
+    .search input { flex: 1; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid #e8edf4; text-align: left; vertical-align: top; }
+    th { color: #63718a; font-size: .8rem; text-transform: uppercase; }
+    td.question { min-width: 220px; }
+    td.answer { min-width: 300px; max-width: 520px; }
+    td.answer, td.question { white-space: pre-wrap; }
+    .actions { display: flex; gap: 8px; align-items: center; }
+    .actions form { margin: 0; }
+    .pagination { display: flex; gap: 14px; justify-content: center; align-items: center; padding-top: 16px; }
+    .flash { margin-bottom: 12px; padding: 12px; border-radius: 8px; }
+    .flash.success { color: #1c643f; background: #eaf8f0; }
+    .flash.error { color: #8a2222; background: #fff0f0; }
+    @media (max-width: 700px) {
+      header { align-items: flex-start; flex-direction: column; }
+      .settings-grid { grid-template-columns: 1fr; }
+      .field-wide { grid-column: auto; }
+      section { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Helpdesk admin</h1>
+    <nav>
+      <a href="{{ url_for('index') }}">View website</a>
+      <form method="post" action="{{ url_for('admin_logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit">Sign out</button>
+      </form>
+    </nav>
+  </header>
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}" role="status">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <section id="settings">
+      <h2>Website and chatbot content</h2>
+      <p>Changes here update the public helpdesk and unanswered-question response.</p>
+      <form method="post" action="{{ url_for('admin_save_settings') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="settings-grid">
+          {% for field, label in [
+            ('college_name', 'College name'),
+            ('location', 'Location'),
+            ('college_code', 'College code'),
+            ('helpdesk_title', 'Helpdesk title'),
+            ('welcome_title', 'Welcome heading'),
+            ('welcome_text', 'Welcome description'),
+            ('welcome_message', 'First chat message'),
+            ('composer_hint', 'Message box hint'),
+            ('input_placeholder', 'Message input placeholder'),
+            ('fallback_answer', 'Unmatched question response'),
+            ('contact_phone', 'Contact phone'),
+            ('contact_website', 'Contact website'),
+            ('quick_topics', 'Quick-reply topics (comma-separated)')
+          ] %}
+            <div class="{{ 'field-wide' if field in ['welcome_text', 'welcome_message', 'composer_hint', 'fallback_answer'] else '' }}">
+              <label for="{{ field }}">{{ label }}</label>
+              {% if field in ['welcome_text', 'welcome_message', 'composer_hint', 'fallback_answer'] %}
+                <textarea id="{{ field }}" name="{{ field }}" required>{{ settings[field] }}</textarea>
+              {% else %}
+                <input id="{{ field }}" name="{{ field }}" value="{{ settings[field] }}" required>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <p><button class="primary" type="submit">Save website settings</button></p>
+      </form>
+    </section>
+
+    <section id="password">
+      <h2>Change admin password</h2>
+      <p>Choose a new password with at least 12 characters. Your password is stored as a salted hash.</p>
+      <form method="post" action="{{ url_for('admin_change_password') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label for="current_password">Current password</label>
+        <input id="current_password" name="current_password" type="password" autocomplete="current-password" required>
+        <label for="new_password">New password</label>
+        <input id="new_password" name="new_password" type="password" minlength="12" autocomplete="new-password" required>
+        <label for="confirm_password">Confirm new password</label>
+        <input id="confirm_password" name="confirm_password" type="password" minlength="12" autocomplete="new-password" required>
+        <p><button class="primary" type="submit">Change password</button></p>
+      </form>
+    </section>
+
+    <section id="faqs">
+      <div class="toolbar">
+        <div>
+          <h2>FAQ entries</h2>
+          <p>{{ total_faqs }} FAQs in the helpdesk database.</p>
+        </div>
+        <a class="button primary" href="{{ url_for('admin_new_faq') }}">Add FAQ</a>
+      </div>
+      <form class="search" method="get" action="{{ url_for('admin_dashboard') }}">
+        <input type="search" name="q" value="{{ query }}" placeholder="Search question, answer, category, or keyword">
+        <button type="submit">Search</button>
+        {% if query %}<a class="button" href="{{ url_for('admin_dashboard') }}">Clear</a>{% endif %}
+      </form>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Question</th><th>Answer</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for faq in faqs %}
+              <tr>
+                <td>{{ faq.category }}</td>
+                <td class="question">{{ faq.q }}</td>
+                <td class="answer">{{ faq.a }}</td>
+                <td>
+                  <div class="actions">
+                    <a class="button" href="{{ url_for('admin_edit_faq', faq_id=faq.id) }}">Edit</a>
+                    <form method="post" action="{{ url_for('admin_delete_faq', faq_id=faq.id) }}" onsubmit="return confirm('Delete this FAQ entry?')">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button class="danger" type="submit">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4">No FAQs found for this search.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if total_pages > 1 %}
+        <nav class="pagination" aria-label="FAQ pages">
+          {% if page > 1 %}<a href="{{ url_for('admin_dashboard', q=query, page=page - 1) }}">Previous</a>{% endif %}
+          <span>Page {{ page }} of {{ total_pages }}</span>
+          {% if page < total_pages %}<a href="{{ url_for('admin_dashboard', q=query, page=page + 1) }}">Next</a>{% endif %}
+        </nav>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

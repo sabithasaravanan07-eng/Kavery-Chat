@@ -1,0 +1,15 @@
+{
+  "college_name": "The Kavery Engineering College (Autonomous)",
+  "location": "Mecheri, Salem",
+  "college_code": "2625",
+  "helpdesk_title": "TKEC AI Helpdesk",
+  "welcome_title": "Vanakkam! How can I help?",
+  "welcome_text": "Ask a question or choose one from the sidebar. Answers are from TKEC's college information.",
+  "welcome_message": "Welcome to TKEC AI Helpdesk! College, fees, courses, hostel, bus routes, placements — ask about anything",
+  "composer_hint": "Answers come from the college FAQ database. For unlisted details, contact the college.",
+  "input_placeholder": "Message TKEC Helpdesk...",
+  "fallback_answer": "Your query is not currently covered in my available knowledge base. Please provide additional details so I can assist you more effectively 04298-279158 and https://tkec.edu.in .",
+  "contact_phone": "04298-279158",
+  "contact_website": "https://tkec.edu.in",
+  "quick_topics": "Fees, Hostel, Placement, Bus routes, Contact, Admission"
+}
